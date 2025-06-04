@@ -71,15 +71,21 @@ class ServiceMakeFeatures:
         df_filled = df_filled[df_filled["Ticket"].apply(lambda x: isinstance(x, str))]
         df_filled = df_filled[df_filled["Cabin"].apply(lambda x: isinstance(x, str))]
         df_filled = df_filled[df_filled["Embarked"].isin(["C", "Q", "S"])]
-        df_filled = df_filled[
-            (df_filled["Age"] >= 0) &(df_filled["Age"] <= 130) & (df_filled["Age"].apply(float.is_integer))
-        ]
-        df_filled = df_filled[
-            (df_filled["Sibsp"] >= 0) & (df_filled["Sibsp"].apply(float.is_integer))
-        ]
-        df_filled = df_filled[
-            (df_filled["Parch"] >= 0) & (df_filled["Parch"].apply(float.is_integer))
-        ]
+        # df_filled = df_filled[
+        #     df_filled["Age"].apply(lambda x: isinstance(x, (int, float)) and 0 <= x <= 130 and float(x).is_integer())
+        # ]
+        # df_filled = df_filled[
+        #     (df_filled["Sibsp"] >= 0) & (
+        #         df_filled["Sibsp"].apply(
+        #             lambda x: isinstance(x, (int, float)) and 0 <= x and float(x).is_integer()
+        #             )
+        #         )
+        # ]
+        # df_filled = df_filled[
+        #     (df_filled["Parch"] >= 0) & (df_filled["Parch"].apply(
+        #             lambda x: isinstance(x, (int, float)) and 0 <= x and float(x).is_integer()
+        #     ))
+        # ]
         return df_filled
 
     def _make_features(self, df_obeyed: pd.DataFrame) -> pd.DataFrame:

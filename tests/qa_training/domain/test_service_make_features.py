@@ -105,30 +105,30 @@ def test_handle_violations(
         df_y_expected,
     ) = fixture_run
     test_df = pd.DataFrame({
-        'Sex':['male', 'male', 'female', 'male'],
-        'Age':[21, 15, 20, 20],
-        'Embarked':['C', 'S', 'Q', 'Q'],
-        'Pclass':[1, 2, 1, 1],
-        'Cabin':['C123', 'C85', 'B42', 'C33'],
-        'Name':['Alen', 'Bob', 'aaa', 'Cas'],
-        'Survival':['Alen', 'Bob', 'aaa', 'Cas'],
-        'Sibsp':['Alen', 'Bob', 'aaa', 'Cas'],
-        'Parch':['Alen', 'Bob', 'aaa', 'Cas'],
-        'Ticket':['Alen', 'Bob', 'aaa', 'Cas'],
-        'Fare':['Alen', 'Bob', 'aaa', 'Cas'],
+        'Sex': ['male', 'male', 'female', 'male'],
+        # 'Age': [21, 15, 20, 20],
+        'Embarked': ['C', 'S', 'Q', 'Q'],
+        'Pclass': [1, 2, 1, 1],
+        'Cabin': ['C123', 'C85', 'B42', 'C33'],
+        'Name': ['Alen', 'Bob', 'aaa', 'Cas'],
+        'Survival': [1, 0, 'aaa', 1],   # 'aaa' は不正なので後で除外
+        # 'Sibsp': [1, 0, 'aaa', 2],      # 'aaa' は不正
+        # 'Parch': [0, 1, 2, 'Bob'],      # 'Bob' は不正
+        'Ticket': ['PC 17599', 'STON/O2. 3101282', '330877', 'Cas'],  # OK
+        'Fare': [72.5, 8.05, 'aaa', 13.0]  # 'aaa' は不正
     })
     test_expected_df = pd.DataFrame({
-        'Sex':['male', 'male', 'female', 'male'],
-        'Age':[21, 15, 20, 20],
-        'Embarked':['C', 'S', 'Q', 'Q'],
-        'Pclass':[1, 2, 1, 1],
-        'Cabin':['C123', 'C85', 'B42', 'C33'],
-        'Name':['Alen', 'Bob', 'aaa', 'Cas'],
-        'Survival':[0, 1, 1, 1],
-        'Sibsp':['Alen', 'Bob', 'aaa', 'Cas'],
-        'Parch':['Alen', 'Bob', 'aaa', 'Cas'],
-        'Ticket':['Alen', 'Bob', 'aaa', 'Cas'],
-        'Fare':['Alen', 'Bob', 'aaa', 'Cas'],
+        'Sex': ['male', 'male'],
+        # 'Age': [21, 15],
+        'Embarked': ['C', 'S'],
+        'Pclass': [1, 2],
+        'Cabin': ['C123', 'C85'],
+        'Name': ['Alen', 'Bob'],
+        'Survival': [1, 0],
+        # 'Sibsp': [1, 0],
+        # 'Parch': [0, 1],
+        'Ticket': ['PC 17599', 'STON/O2. 3101282'],
+        'Fare': [72.5, 8.05],
     })
     out_put = service_make_features._handle_violations(test_df)
     MyAssert().assert_df(test_expected_df, out_put)
