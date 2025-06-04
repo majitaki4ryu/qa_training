@@ -52,20 +52,40 @@ class ServiceMakeFeatures:
 
     def _handle_missing_values(self, df_customer_info) -> pd.DataFrame:
         """欠損値処理する."""
-        df_customer_info["Age"] = df_customer_info["Age"].fillna(10)
-        df_customer_info["Cabin"] = df_customer_info["Cabin"].fillna("S")
-        df_customer_info = df_customer_info.dropna()
+        df_customer_info["Sex"] = df_customer_info["Sex"].fillna('male') # error_tag
+        # df_customer_info["Age"] = df_customer_info["Age"].fillna(10)
+        df_customer_info["Age"] = df_customer_info["Age"].fillna(20) # error_tag
+        # df_customer_info["Cabin"] = df_customer_info["Cabin"].fillna("S")
+        df_customer_info["Embarked"] = df_customer_info["Embarked"].fillna("S") # error_tag
+        df_customer_info["Pclass"] = df_customer_info["Pclass"].fillna(2) # error_tag
+        for name in ['Survival', 'Name', 'Sibsp','Parch', 'Ticket', 'Fare', 'Cabin']:
+            if name in df_customer_info.columns:
+                df_customer_info = df_customer_info.dropna(subset=[name])
         return df_customer_info
 
     def _handle_violations(self, df_filled) -> pd.DataFrame:
         """制約違反を処理する."""
+        df_filled = df_filled[df_filled["Survival"].isin([0, 1])]
         df_filled = df_filled[df_filled["Pclass"].isin([1, 2, 3])]
-        df_filled = df_filled[df_filled["Sex"].isin(["male", "female"])]
-        df_filled = df_filled[
-            (df_filled["Age"] >= 0) & (df_filled["Age"].apply(float.is_integer))
-        ]
+        df_filled = df_filled[df_filled["Name"].apply(lambda x: isinstance(x, str))]
+        df_filled = df_filled[df_filled["Ticket"].apply(lambda x: isinstance(x, str))]
+        df_filled = df_filled[df_filled["Cabin"].apply(lambda x: isinstance(x, str))]
         df_filled = df_filled[df_filled["Embarked"].isin(["C", "Q", "S"])]
-
+        # df_filled = df_filled[
+        #     df_filled["Age"].apply(lambda x: isinstance(x, (int, float)) and 0 <= x <= 130 and float(x).is_integer())
+        # ]
+        # df_filled = df_filled[
+        #     (df_filled["Sibsp"] >= 0) & (
+        #         df_filled["Sibsp"].apply(
+        #             lambda x: isinstance(x, (int, float)) and 0 <= x and float(x).is_integer()
+        #             )
+        #         )
+        # ]
+        # df_filled = df_filled[
+        #     (df_filled["Parch"] >= 0) & (df_filled["Parch"].apply(
+        #             lambda x: isinstance(x, (int, float)) and 0 <= x and float(x).is_integer()
+        #     ))
+        # ]
         return df_filled
 
     def _make_features(self, df_obeyed: pd.DataFrame) -> pd.DataFrame:
@@ -76,5 +96,8 @@ class ServiceMakeFeatures:
         df_obeyed.loc[:, "Sex"] = (
             df_obeyed["Sex"].replace({"male": 0, "female": 1}).astype("int64")
         )
-        df_obeyed = pd.get_dummies(df_obeyed, columns=["Embarked"], dtype=float)
+        df_obeyed = pd.get_dummies(df_obeyed, columns=["Embarked"], prefix='Embarked')
+        df_obeyed['hoge'] = pd.cut(df_obeyed['Age'], [0, 10, 18, 40, 64])
+        df_obeyed = pd.get_dummies(df_obeyed, columns=["hoge"], prefix='Age')
+        df_obeyed = df_obeyed.drop('hoge', axis=1)
         return df_obeyed

@@ -1,3 +1,4 @@
+import numpy as np
 import pandas as pd
 import pytest
 from qa_training.domain.service_make_features import ServiceMakeFeatures
@@ -47,3 +48,87 @@ def test_run(
     MyAssert().assert_df(df_id, df_id_expected)
     MyAssert().assert_df(df_X, df_X_expected)
     MyAssert().assert_df(df_y, df_y_expected)
+
+def test_handle_missing_values(
+    fixture_run: tuple[
+        ServiceMakeFeatures, pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame
+    ]
+):
+    (
+        service_make_features,
+        df_customer_info,
+        df_id_expected,
+        df_X_expected,
+        df_y_expected,
+    ) = fixture_run
+    test_df = pd.DataFrame({
+        'Sex':[np.nan, 'male', 'female', np.nan, 'female'],
+        'Age':[21, 15, np.nan, np.nan, 33],
+        'Embarked':['C', np.nan, 'Q', 'Q', 'S'],
+        'Pclass':[1, np.nan, 1, 1, 3],
+        'Cabin':['C123', 'C85', 'B42', 'C33', 'S33'],
+        'Name':['Alen', 'Bob', 'aaa', 'Cas', np.nan],
+        'Survival':['Alen', 'Bob', 'aaa', 'Cas', np.nan],
+        'Sibsp':['Alen', 'Bob', 'aaa', 'Cas', np.nan],
+        'Parch':['Alen', 'Bob', 'aaa', 'Cas', np.nan],
+        'Ticket':['Alen', 'Bob', 'aaa', 'Cas', np.nan],
+        'Fare':['Alen', 'Bob', 'aaa', 'Cas', np.nan],
+    })
+    test_expected_df = pd.DataFrame({
+        'Sex':['male', 'male', 'female', 'male'],
+        'Age':[21, 15, 20, 20],
+        'Embarked':['C', 'S', 'Q', 'Q'],
+        'Pclass':[1, 2, 1, 1],
+        'Cabin':['C123', 'C85', 'B42', 'C33'],
+        'Name':['Alen', 'Bob', 'aaa', 'Cas'],
+        'Survival':['Alen', 'Bob', 'aaa', 'Cas'],
+        'Sibsp':['Alen', 'Bob', 'aaa', 'Cas'],
+        'Parch':['Alen', 'Bob', 'aaa', 'Cas'],
+        'Ticket':['Alen', 'Bob', 'aaa', 'Cas'],
+        'Fare':['Alen', 'Bob', 'aaa', 'Cas'],
+    })
+    out_put = service_make_features._handle_missing_values(test_df)
+    MyAssert().assert_df(test_expected_df, out_put)
+
+
+
+def test_handle_violations(
+    fixture_run: tuple[
+        ServiceMakeFeatures, pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame
+    ]
+):
+    (
+        service_make_features,
+        df_customer_info,
+        df_id_expected,
+        df_X_expected,
+        df_y_expected,
+    ) = fixture_run
+    test_df = pd.DataFrame({
+        'Sex': ['male', 'male', 'female', 'male'],
+        # 'Age': [21, 15, 20, 20],
+        'Embarked': ['C', 'S', 'Q', 'Q'],
+        'Pclass': [1, 2, 1, 1],
+        'Cabin': ['C123', 'C85', 'B42', 'C33'],
+        'Name': ['Alen', 'Bob', 'aaa', 'Cas'],
+        'Survival': [1, 0, 'aaa', 1],   # 'aaa' は不正なので後で除外
+        # 'Sibsp': [1, 0, 'aaa', 2],      # 'aaa' は不正
+        # 'Parch': [0, 1, 2, 'Bob'],      # 'Bob' は不正
+        'Ticket': ['PC 17599', 'STON/O2. 3101282', '330877', 'Cas'],  # OK
+        'Fare': [72.5, 8.05, 'aaa', 13.0]  # 'aaa' は不正
+    })
+    test_expected_df = pd.DataFrame({
+        'Sex': ['male', 'male'],
+        # 'Age': [21, 15],
+        'Embarked': ['C', 'S'],
+        'Pclass': [1, 2],
+        'Cabin': ['C123', 'C85'],
+        'Name': ['Alen', 'Bob'],
+        'Survival': [1, 0],
+        # 'Sibsp': [1, 0],
+        # 'Parch': [0, 1],
+        'Ticket': ['PC 17599', 'STON/O2. 3101282'],
+        'Fare': [72.5, 8.05],
+    })
+    out_put = service_make_features._handle_violations(test_df)
+    MyAssert().assert_df(test_expected_df, out_put)
